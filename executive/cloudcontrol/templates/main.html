@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}vCloud Executive{% endblock %}
+{% block content %}
+<div class="row">
+	<p>&nbsp;</p>
+	<p><button type="button" class="btn btn-defaul">Build new server</button>&nbsp;You have 2345 remaining credits.</p>
+	<p>&nbsp;</p>
+</div>
+
+<!-- Example row of columns -->
+<div class="row">
+	<div class="panel panel-default">
+	  <div class="panel-heading">
+	    <h3 class="panel-title">Server: DK3-N5</h3>
+	  </div>
+	  <div class="panel-body">
+	    
+	    
+	  </div>
+	</div>
+	
+	<div class="panel panel-default" server-id="DK3-N6" status="started">
+ 		<!-- Statuses: started, stopped, suspended, boosting, deboosting and pre versions of each -->
+ 		<div class="panel-heading">
+    		<h3 class="panel-title">Server: DK3-N6</h3>
+  		</div>
+	  	<div class="panel-body">
+	    	<div class="alert alert-danger" role="alert">
+  				<a href="#" class="alert-link">Warning! This server is due to deboost in 123 minutes.</a>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<dl class="dl-horizontal">
+		  				<dt>Memory</dt>
+		  				<dd>2GB</dd>
+					</dl>
+					<dl class="dl-horizontal">
+		  				<dt>CPUs</dt>
+		  				<dd>1</dd>
+					</dl>
+					<dl class="dl-horizontal">
+		  				<dt>Hard Drive</dt>
+		  				<dd>200GB</dd>
+					</dl>	
+				</div>
+				<div class="col-md-4">
+					<dl class="dl-horizontal">
+		  				<dt>Created</dt>
+		  				<dd>30/11/2014</dd>
+					</dl>
+					<dl class="dl-horizontal">
+		  				<dt>Last Updated</dt>
+		  				<dd>30/11/2014</dd>
+					</dl>
+					<dl class="dl-horizontal">
+		  				<dt>Next Change Due</dt>
+		  				<dd>02/12/2014</dd>
+					</dl>	
+				</div>
+				<div class="col-md-4">
+					<dl class="dl-horizontal">
+		  				<dt>Notes</dt>
+		  				<dd>Your head is not an artifact! Some days you get the bear, and some days the bear gets you. You enjoyed that.</dd>
+					</dl>
+				</div>
+			</div>
+			<button type="button" class="btn btn-success btn-start" disabled="disabled">Start</button>
+			<button type="button" class="btn btn-warning btn-suspend">Suspend</button>
+			<button type="button" class="btn btn-danger btn-stop">Stop</button>
+			<button type="button" class="btn btn-info pull-right btn-deboost">De-Boost</button>
+			<button type="button" class="btn btn-primary btn-boost pull-right">Boost</button>
+			<div id="progressbar">
+				<hr>
+				<p>Boosting. Progress:</p>
+				<div class="progress">
+				  <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+				    <span class="sr-only">45% Complete</span>
+				  </div>
+				</div>
+			</div>
+	  	</div>
+	</div>
+	
+	<div class="panel panel-default">
+	  <div class="panel-heading">
+	    <h3 class="panel-title">Server: BioLNX1</h3>
+	  </div>
+	  <div class="panel-body">
+	    <div class="alert alert-success" role="alert">
+  			<a href="#" class="alert-link">Server successfully provisioned. Hit "Start" to launch the system.</a>
+		</div>
+	  </div>
+	</div>
+	
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(".btn-stop").click(function() {
+	$(this).parent().children("#progressbar").animate({
+		height: "100px",
+	}, 500, function() {});
+	poll_stop('dk345');
+});
+
+$(".btn-start").click(function() {
+	$(this).parent().children("#progressbar").animate({
+		height: "100px",
+	}, 500, function() {});
+	// Then ajax call to Django to run start procedure and get repeated status updates
+});
+
+$(".btn-suspend").click(function() {
+	$(this).parent().children("#progressbar").animate({
+		height: "100px",
+	}, 500, function() {});
+	// Then ajax call to Django to run suspend procedure and get repeated status updates
+});
+
+$(".btn-boost").click(function() {
+	$(this).parent().children("#progressbar").animate({
+		height: "100px",
+	}, 500, function() {});
+	poll_boost('dk345');
+});
+
+$(".btn-deboost").click(function() {
+	$(this).parent().children("#progressbar").animate({
+		height: "100px",
+	}, 500, function() {});
+	poll_deboost('dk345');
+});
+
+function poll_deboost(server_name) {
+	console.log("Called");
+	$.get('{% url "ajax_deboost_server" %}', {"server_name": server_name}, function(data){
+		valeur = data['percent_complete'];
+		$('.progress-bar').css('width', valeur+'%').attr('aria-valuenow', valeur);
+		$('.progress-bar').removeAttr('active'); //replace with something that actually stops the bar
+		if (valeur!="100") {
+			setTimeout(function() {
+				poll_deboost(server_name);
+			}, 3000);	
+		}
+	});		
+}
+
+function poll_boost(server_name) {
+	$.get('{% url "ajax_boost_server" %}', {"server_name": server_name}, function(data){
+		valeur = data['percent_complete'];
+		$('.progress-bar').css('width', valeur+'%').attr('aria-valuenow', valeur);
+		$('.progress-bar').removeAttr('active'); //replace with something that actually stops the bar
+		if (valeur!="100") {
+			setTimeout(function() {
+				poll_boost(server_name);
+			}, 3000);	
+		}
+	});		
+}
+
+</script>
+{% endblock extra_js %}
